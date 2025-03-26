@@ -1,0 +1,8 @@
+{
+    "auth": {
+      "user_exists": "El usuario ya existe",
+      "invalid_credentials": "Credenciales inválidas",
+      "registration_failed": "Error en el registro"
+    },
+    "server_error": "Error del servidor"
+  }

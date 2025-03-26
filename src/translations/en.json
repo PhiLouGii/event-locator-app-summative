@@ -1,7 +1,13 @@
 {
+  "auth": {
     "user_exists": "User already exists",
     "invalid_credentials": "Invalid credentials",
-    "event_not_found": "Event not found",
-    "route_not_found": "Route not found",
-    "server_error": "Internal server error"
-  }
+    "registration_failed": "Registration failed"
+  },
+  "server_error": "Server error",
+  "missing_required_fields": "Missing required fields",
+  "invalid_coordinates": "Invalid latitude/longitude",
+  "invalid_date_format": "Invalid date format",
+  "invalid_categories": "One or more categories are invalid",
+  "route_not_found": "Route not found"
+}
