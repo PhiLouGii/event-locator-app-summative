@@ -1,0 +1,7 @@
+{
+    "user_exists": "User already exists",
+    "invalid_credentials": "Invalid credentials",
+    "event_not_found": "Event not found",
+    "route_not_found": "Route not found",
+    "server_error": "Internal server error"
+  }
