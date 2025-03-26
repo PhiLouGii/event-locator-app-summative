@@ -20,5 +20,12 @@
     "jest": "^29.7.0",
     "nodemon": "^3.1.9",
     "supertest": "^7.1.0"
+  },
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "jest",
+    "migrate": "knex migrate:latest",
+    "migrate:test": "NODE_ENV=test knex migrate:latest"
   }
 }
