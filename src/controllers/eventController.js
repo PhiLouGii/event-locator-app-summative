@@ -125,7 +125,7 @@ exports.deleteEvent = async (req, res) => {
 // SEARCH EVENTS
 exports.searchEvents = async (req, res) => {
   try {
-    const { lat, lng, radius = 5000 } = req.query; // radius in metres
+    const { lat, lng, radius = 5000, categories } = req.query; // radius in metres
 
     // Validate coordinates
     if (!lat || !lng) {
