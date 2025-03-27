@@ -78,14 +78,28 @@ exports.createEvent = async (req, res) => {
         );
       }
 
-      return newEvent;
+      // Get event with categories
+      const eventWithCategories = await trx('events')
+        .leftJoin('event_categories', 'events.id', 'event_categories.event_id')
+        .leftJoin('categories', 'event_categories.category_id', 'categories.id')
+        .select(
+          'events.*',
+          trx.raw('ARRAY_AGG(categories.name) as categories')
+        )
+        .where('events.id', newEvent.id)
+        .groupBy('events.id')
+        .first();
+
+      return eventWithCategories;
     });
 
     res.status(201).json(event);
   } catch (error) {
     console.error('Event creation error:', error);
     const status = error.message.includes(req.t('invalid_categories')) ? 400 : 500;
-    res.status(status).json({ error: error.message || req.t('server_error') });
+    res.status(status).json({ 
+      error: error.message || req.t('server_error') 
+    });
   }
 };
 
@@ -125,24 +139,41 @@ exports.searchEvents = async (req, res) => {
       return res.status(400).json({ error: req.t('invalid_coordinates') });
     }
 
-    // PostGIS query
+     // Parse and validate categories
+     const categoryIds = categories ? categories.split(',').map(Number) : [];
+     if (categoryIds.some(isNaN)) {
+       return res.status(400).json({ error: req.t('invalid_categories') });
+     }
+
+    // Query with category filtering
     const events = await knex.raw(`
-      SELECT *, 
-      ST_Distance(
-        location::geography, 
-        ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
-      ) AS distance
+      SELECT 
+        events.*,
+        ST_Distance(
+          events.location::geography, 
+          ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+        ) AS distance,
+        ARRAY_AGG(categories.name) AS categories
       FROM events
+      LEFT JOIN event_categories ON events.id = event_categories.event_id
+      LEFT JOIN categories ON event_categories.category_id = categories.id
       WHERE ST_DWithin(
-        location::geography,
+        events.location::geography,
         ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
         ?
       )
+      ${categoryIds.length > 0 ? 'AND categories.id = ANY(?::int[])' : ''}
+      GROUP BY events.id
       ORDER BY distance
-    `, [lng, lat, lng, lat, radius]);
+    `, [
+      longitude, latitude,
+      longitude, latitude, radius,
+      ...(categoryIds.length > 0 ? [categoryIds] : [])
+    ]);
 
     res.json(events.rows);
   } catch (error) {
+    console.error('Search error:', error);
     res.status(500).json({ error: req.t('server_error') });
   }
 };
