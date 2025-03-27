@@ -7,9 +7,10 @@
   "server_error": "Server error",
   "missing_required_fields": "Missing required fields",
   "invalid_coordinates": "Invalid latitude/longitude",
+  "missing_coordinates": "Invalid latitude/longitude values",
   "invalid_date_format": "Invalid date format",
+  "invalid_category": "Invalid category ID provided",
   "invalid_categories": "One or more categories are invalid",
   "route_not_found": "Route not found",
-  "event_not_found": "Event not found",
-  "missing_coordinates": "Missing latitude/longitude parameters"
+  "event_not_found": "Event not found"
 }

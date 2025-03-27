@@ -1,17 +1,40 @@
+const { parse } = require('dotenv');
 const knex = require('../config/database');
 
 // GET ALL EVENTS
 exports.getAllEvents = async (req, res) => {
   try {
-    const events = await knex('events')
+    const { category } = req.query;
+    
+    let query = knex('events')
       .leftJoin('event_categories', 'events.id', 'event_categories.event_id')
       .leftJoin('categories', 'event_categories.category_id', 'categories.id')
       .select(
         'events.*',
         knex.raw('ARRAY_AGG(categories.name) as categories')
       )
-      .groupBy('events.id');  // Grouping
+      .groupBy('events.id');
 
+    if (category) {
+      // Validate category is a number
+      const categoryId = Number(category);
+      if (isNaN(categoryId)) {
+        return res.status(400).json({ error: req.t('invalid_category') });
+      }
+
+      // Check if category exists
+      const categoryExists = await knex('categories')
+        .where('id', categoryId)
+        .first();
+
+      if (!categoryExists) {
+        return res.status(400).json({ error: req.t('invalid_category') });
+      }
+
+      query = query.where('categories.id', categoryId);
+    }
+
+    const events = await query;
     res.json(events);
   } catch (error) {
     console.error('Get events error:', error);
@@ -19,7 +42,7 @@ exports.getAllEvents = async (req, res) => {
   }
 };
 
-// CREATE EVENT (MISSING METHOD)
+// CREATE EVENT 
 exports.createEvent = async (req, res) => {
   try {
     const { title, description, lat, lng, date_time, categories } = req.body;
@@ -67,7 +90,7 @@ exports.createEvent = async (req, res) => {
 };
 
 
-// DELET EVENT
+// DELETE EVENT
 exports.deleteEvent = async (req, res) => {
   try {
     const deleted = await knex('events')
@@ -88,12 +111,21 @@ exports.deleteEvent = async (req, res) => {
 // SEARCH EVENTS
 exports.searchEvents = async (req, res) => {
   try {
-    const { lat, lng, radius = 5000 } = req.query;
+    const { lat, lng, radius = 5000 } = req.query; // radius in metres
 
+    // Validate coordinates
     if (!lat || !lng) {
       return res.status(400).json({ error: req.t('missing_coordinates') });
     }
 
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({ error: req.t('invalid_coordinates') });
+    }
+
+    // PostGIS query
     const events = await knex.raw(`
       SELECT *, 
       ST_Distance(
