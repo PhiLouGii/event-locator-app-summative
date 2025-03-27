@@ -1,6 +1,7 @@
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
+const knex = require('./database');
 
 module.exports = (passport) => {
   const opts = {
@@ -8,11 +9,13 @@ module.exports = (passport) => {
     secretOrKey: process.env.JWT_SECRET
   };
 
-  passport.use(new JwtStrategy(opts, async (jwt_payload, done) => {
+  passport.use(new JwtStrategy(opts, async (jwtPayload, done) => {
     try {
-      const user = await knex('users').where({ id: jwt_payload.sub }).first();
+      console.log('JWT Payload:', jwtPayload); // Log the decoded token
+      const user = await knex('users').where({ id: jwtPayload.sub }).first();
       return user ? done(null, user) : done(null, false);
     } catch (err) {
+      console.error('JWT Error:', err); // Log errors
       return done(err, false);
     }
   }));

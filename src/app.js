@@ -57,7 +57,7 @@ require('./config/passport')(passport);
 // ======================
 const authRoutes = require('./routes/authRoutes');
 const eventRoutes = require('./routes/eventRoutes');
-const userRoutes = require('./routes/users');
+const userRoutes = require('./routes/userRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);

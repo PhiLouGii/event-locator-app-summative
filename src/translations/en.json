@@ -9,5 +9,7 @@
   "invalid_coordinates": "Invalid latitude/longitude",
   "invalid_date_format": "Invalid date format",
   "invalid_categories": "One or more categories are invalid",
-  "route_not_found": "Route not found"
+  "route_not_found": "Route not found",
+  "event_not_found": "Event not found",
+  "missing_coordinates": "Missing latitude/longitude parameters"
 }
