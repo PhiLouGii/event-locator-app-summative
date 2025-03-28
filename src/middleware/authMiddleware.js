@@ -19,6 +19,14 @@ passport.use(new JwtStrategy(jwtOptions, async (jwtPayload, done) => {
 }));
 
 // Middleware function
-const authenticate = passport.authenticate('jwt', { session: false });
+const authMiddleware = (req, res, next) => {
+  passport.authenticate('jwt', { session: false }, (err, user, info) => {
+    if (err) return next(err);
+    if (!user) return res.status(401).json({ error: 'Invalid token' });
+    
+    req.user = user;
+    next();
+  })(req, res, next);
+};
 
-module.exports = authenticate;
+module.exports = authMiddleware;
