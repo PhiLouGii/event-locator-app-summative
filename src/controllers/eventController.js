@@ -206,6 +206,30 @@ exports.deleteEvent = async (req, res) => {
   }
 };
 
+// GET EVENT BY ID
+exports.getEventById = async (req, res) => {
+  try {
+    const event = await knex('events')
+      .leftJoin('event_categories', 'events.id', 'event_categories.event_id')
+      .leftJoin('categories', 'event_categories.category_id', 'categories.id')
+      .select(
+        'events.*',
+        knex.raw('ARRAY_AGG(categories.name) as categories')
+      )
+      .where('events.id', req.params.id)
+      .groupBy('events.id')
+      .first();
+
+    if (!event) {
+      return res.status(404).json({ error: req.t('event_not_found') });
+    }
+
+    res.json(event);
+  } catch (error) {
+    res.status(500).json({ error: req.t('server_error') });
+  }
+};
+
 // SEARCH EVENTS
 exports.searchEvents = async (req, res) => {
   try {

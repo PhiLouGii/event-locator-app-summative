@@ -11,5 +11,6 @@ router.delete('/:id', authMiddleware, eventController.deleteEvent);
 router.get('/search', eventController.searchEvents);
 router.put('/:id', authMiddleware, eventController.updateEvent);
 router.delete('/admin/:id', authMiddleware, isAdmin, eventController.deleteEvent);
+router.get('/:id', eventController.getEventById);
 
 module.exports = router;

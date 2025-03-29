@@ -6,6 +6,8 @@ const redis = require('redis');
 const passport = require('passport');
 const knex = require('./config/database');
 const configurePassport = require('./config/passport');
+const CustomLanguageDetector = require('./middleware/languageDetector');
+const authMiddleware = require('./middleware/authMiddleware');
 
 // Initialize Express
 const app = express();
@@ -13,30 +15,33 @@ const app = express();
 // ======================
 //  INTERNATIONALIZATION
 // ======================
-const enTranslations = require('./translations/en.json');
-const esTranslations = require('./translations/es.json');
-
-i18next
-  .use(i18nextMiddleware.LanguageDetector)
+const i18n = i18next
+  .use(new CustomLanguageDetector())
   .init({
     fallbackLng: 'en',
     resources: {
-      en: { translation: enTranslations },
-      es: { translation: esTranslations }
+      en: { translation: require('./translations/en.json') },
+      es: { translation: require('./translations/es.json') }
     },
     detection: {
-      order: ['header', 'querystring'],
+      order: ['userLanguage', 'querystring', 'header'],
       caches: ['cookie']
     }
   });
 
+
 // ======================
-//  MIDDLEWARE
+// ESSENTIAL MIDDLEWARE
 // ======================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(i18nextMiddleware.handle(i18next));  // i18n middleware
 app.use(passport.initialize());
+
+// ======================
+//  AUTH & LOCALIZATION
+// ======================
+app.use(i18nextMiddleware.handle(i18next)); // Uses req.user
+
 
 // ======================
 //  DATABASE & REDIS
@@ -60,9 +65,11 @@ const authRoutes = require('./routes/authRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const userRoutes = require('./routes/userRoutes');
 
+
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/users', userRoutes);
+app.use(authMiddleware); // Sets req.user
 
 // ======================
 //  ERROR HANDLING
