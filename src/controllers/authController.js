@@ -43,7 +43,7 @@ exports.login = async (req, res) => {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
   
-      // Check passwordrs
+      // Check passwords
       const validPassword = await bcrypt.compare(password, user.password_hash);
       if (!validPassword) {
         return res.status(401).json({ error: 'Invalid credentials' });
@@ -51,7 +51,7 @@ exports.login = async (req, res) => {
   
       // Generate JWT
       const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, {
-        expiresIn: '2h'
+        expiresIn: '1h'
       });
   
       res.json({ token });

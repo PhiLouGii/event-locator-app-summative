@@ -55,7 +55,7 @@ exports.updatePreferences = async (req, res) => {
     const userId = req.user.id;
 
     // Validate language first
-    const validLanguages = ['en', 'es', 'fr', 'it', 'de'];
+    const validLanguages = ['en', 'es', 'fr', 'it', 'de', 'fi', 'nl', 'pt', 'sw', 'zu'];
     if (preferred_language && !validLanguages.includes(preferred_language)) {
       await trx.rollback();
       return res.status(400).json({ error: req.t('invalid_language') });

@@ -1,0 +1,21 @@
+{
+    "auth": {
+      "user_exists": "Käyttäjä on jo olemassa",
+      "invalid_credentials": "Virheelliset tunnistetiedot",
+      "registration_failed": "Rekisteröinti epäonnistui"
+    },
+    "server_error": "Palvelinvirhe",
+    "missing_required_fields": "Pakollisia kenttiä puuttuu",
+    "preferences_reset": "Asetukset nollattu onnistuneesti",
+    "invalid_latitude": "Virheellinen leveysaste",
+    "invalid_longitude": "Virheellinen pituusaste",
+    "invalid_coordinates": "Virheelliset koordinaatit",
+    "missing_coordinates": "Koordinaatit puuttuvat",
+    "invalid_date_format": "Virheellinen päivämäärämuoto",
+    "invalid_category": "Virheellinen kategoria-ID",
+    "invalid_categories": "Yksi tai useampi kategoria on virheellinen",
+    "route_not_found": "Reittiä ei löytynyt",
+    "forbidden_action": "Toiminto ei ole sallittu",
+    "event_not_found": "Tapahtumaa ei löytynyt",
+    "invalid_language": "Virheellinen kielivalinta"
+  }
