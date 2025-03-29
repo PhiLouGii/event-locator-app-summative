@@ -103,22 +103,106 @@ exports.createEvent = async (req, res) => {
   }
 };
 
+// UPDATE EVENT
+exports.updateEvent = async (req, res) => {
+  const trx = await knex.transaction();
+  try {
+    const { title, description, lat, lng, date_time, categories } = req.body;
+    const eventId = req.params.id;
+    const userId = req.user.id;
+
+    // 1. Verify ownership
+    const existingEvent = await trx('events')
+      .where({ id: eventId, user_id: userId })
+      .first();
+
+    if (!existingEvent) {
+      await trx.rollback();
+      return res.status(404).json({ error: req.t('event_not_found') });
+    }
+
+    // 2. Update event
+    const updatedEvent = await trx('events')
+      .where({ id: eventId })
+      .update({
+        title: title || existingEvent.title,
+        description: description ?? existingEvent.description,
+        location: lat && lng ? 
+          trx.raw('ST_SetSRID(ST_MakePoint(?, ?), 4326', [lng, lat]) :
+          existingEvent.location,
+        date_time: date_time || existingEvent.date_time,
+        updated_at: trx.fn.now()
+      })
+      .returning('*');
+
+    // 3. Update categories
+    await trx('event_categories').where({ event_id: eventId }).del();
+
+    if (categories?.length) {
+      const validCategories = await trx('categories')
+        .whereIn('id', categories)
+        .pluck('id');
+
+      if (validCategories.length !== categories.length) {
+        await trx.rollback();
+        return res.status(400).json({ error: req.t('invalid_categories') });
+      }
+
+      await trx('event_categories').insert(
+        validCategories.map(catId => ({
+          event_id: eventId,
+          category_id: catId
+        }))
+      );
+    }
+
+    // 4. Fetch updated event
+    const fullEvent = await trx('events')
+      .leftJoin('event_categories', 'events.id', 'event_categories.event_id')
+      .leftJoin('categories', 'event_categories.category_id', 'categories.id')
+      .select(
+        'events.*',
+        trx.raw('ARRAY_AGG(categories.id) as categories')
+      )
+      .where('events.id', eventId)
+      .groupBy('events.id')
+      .first();
+
+    await trx.commit();
+    res.json(fullEvent);
+
+  } catch (error) {
+    await trx.rollback();
+    console.error('Update event error:', error);
+    res.status(500).json({ error: req.t('server_error') });
+  }
+};
+
 
 // DELETE EVENT
 exports.deleteEvent = async (req, res) => {
   try {
-    const deleted = await knex('events')
-      .where({ 
-        id: req.params.id, 
-        user_id: req.user.id 
-      })
-      .del();
+    const query = knex('events').where('id', req.params.id);
 
-    if (!deleted) return res.status(404).json({ error: req.t('event_not_found') });
+    // Explicit admin check
+    if (!req.user.is_admin) {
+      // Non-admins can only delete their own events
+      query.andWhere('user_id', req.user.id);
+    }
+
+    const deleted = await query.del();
+    
+    if (!deleted) {
+      return res.status(404).json({ 
+        error: req.t('event_not_found') 
+      });
+    }
     
     res.status(204).end();
   } catch (error) {
-    res.status(500).json({ error: req.t('server_error') });
+    res.status(500).json({ 
+      error: req.t('server_error') 
+    });
   }
 };
 

@@ -1,16 +1,17 @@
 const knex = require('../config/database');
 
 // In your userController.js
+// controllers/userController.js
 exports.getPreferences = async (req, res) => {
   try {
     const user = await knex('users')
       .leftJoin('user_categories', 'users.id', 'user_categories.user_id')
       .leftJoin('categories', 'user_categories.category_id', 'categories.id')
       .select(
-        'users.email',
+        'users.id',
         knex.raw('ST_Y(users.location::geometry) as lat'),
         knex.raw('ST_X(users.location::geometry) as lng'),
-        knex.raw('ARRAY_AGG(categories.id) as preferred_categories')
+        knex.raw('COALESCE(ARRAY_AGG(categories.id), ARRAY[]::integer[]) as preferred_categories')
       )
       .where('users.id', req.user.id)
       .groupBy('users.id')
@@ -20,10 +21,11 @@ exports.getPreferences = async (req, res) => {
       preferences: {
         location: user.lat && user.lng ? 
           { lat: parseFloat(user.lat), lng: parseFloat(user.lng) } : null,
-        categories: user.preferred_categories || []
+        categories: user.preferred_categories
       }
     });
   } catch (error) {
+    console.error('Get preferences error:', error);
     res.status(500).json({ error: req.t('server_error') });
   }
 };
