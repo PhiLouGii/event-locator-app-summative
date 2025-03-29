@@ -23,13 +23,7 @@ const i18n = i18next
       en: { translation: require('./translations/en.json') },
       es: { translation: require('./translations/es.json') },
       fr: { translation: require('./translations/fr.json') },
-      it: { translation: require('./translations/it.json') },
-      fi: { translation: require('./translations/fi.json') },
-      nl: { translation: require('./translations/nl.json') },
-      pt: { translation: require('./translations/pt.json') },
-      sw: { translation: require('./translations/sw.json') },
-      zu: { translation: require('./translations/zu.json') },
-      de: { translation: require('./translations/de.json') },
+      it: { translation: require('./translations/it.json') }
     },
     detection: {
       order: ['userLanguage', 'querystring', 'header'],
