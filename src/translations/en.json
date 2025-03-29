@@ -15,5 +15,6 @@
   "invalid_category": "Invalid category ID provided",
   "invalid_categories": "One or more categories are invalid",
   "route_not_found": "Route not found",
+  "forbidden_action": "You don't have permission for this action",
   "event_not_found": "Event not found"
 }

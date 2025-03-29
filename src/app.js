@@ -5,6 +5,7 @@ const i18nextMiddleware = require('i18next-http-middleware');
 const redis = require('redis');
 const passport = require('passport');
 const knex = require('./config/database');
+const configurePassport = require('./config/passport');
 
 // Initialize Express
 const app = express();
@@ -47,10 +48,10 @@ const redisClient = redis.createClient({
 
 redisClient.on('connect', () => console.log('✅ Redis connected'));
 redisClient.on('error', (err) => console.error('❌ Redis error:', err));
-redisClient.connect();
+redisClient.connect().catch(err => console.error('Redis connection failed:', err));
 
 // Passport Configuration
-require('./config/passport')(passport);
+configurePassport(passport);
 
 // ======================
 //  ROUTES
