@@ -21,7 +21,10 @@ const i18n = i18next
     fallbackLng: 'en',
     resources: {
       en: { translation: require('./translations/en.json') },
-      es: { translation: require('./translations/es.json') }
+      es: { translation: require('./translations/es.json') },
+      fr: { translation: require('./translations/fr.json') },
+      it: { translation: require('./translations/it.json') },
+      de: { translation: require('./translations/de.json') }
     },
     detection: {
       order: ['userLanguage', 'querystring', 'header'],
@@ -36,6 +39,7 @@ const i18n = i18next
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
+app.use(authMiddleware);
 
 // ======================
 //  AUTH & LOCALIZATION

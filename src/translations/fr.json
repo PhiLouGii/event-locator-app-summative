@@ -1,0 +1,21 @@
+{
+    "auth": {
+      "user_exists": "L'utilisateur existe déjà",
+      "invalid_credentials": "Identifiants invalides",
+      "registration_failed": "Échec de l'inscription"
+    },
+    "server_error": "Erreur du serveur",
+    "invalid_language": "Sélection de langue non valide",
+    "missing_required_fields": "Champs requis manquants",
+    "preferences_reset": "Préférences réinitialisées avec succès",
+    "invalid_latitude": "Latitude invalide",
+    "invalid_longitude": "Longitude invalide",
+    "invalid_coordinates": "Coordonnées invalides",
+    "missing_coordinates": "Coordonnées manquantes",
+    "invalid_date_format": "Format de date invalide",
+    "invalid_category": "ID de catégorie invalide",
+    "invalid_categories": "Une ou plusieurs catégories sont invalides",
+    "route_not_found": "Route non trouvée",
+    "forbidden_action": "Action non autorisée",
+    "event_not_found": "Événement non trouvé"
+  }

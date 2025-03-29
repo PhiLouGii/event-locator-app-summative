@@ -1,7 +1,5 @@
 const knex = require('../config/database');
 
-// In your userController.js
-// controllers/userController.js
 exports.getPreferences = async (req, res) => {
   try {
     const user = await knex('users')
@@ -57,7 +55,7 @@ exports.updatePreferences = async (req, res) => {
     const userId = req.user.id;
 
     // Validate language first
-    const validLanguages = ['en', 'es'];
+    const validLanguages = ['en', 'es', 'fr', 'it', 'de'];
     if (preferred_language && !validLanguages.includes(preferred_language)) {
       await trx.rollback();
       return res.status(400).json({ error: req.t('invalid_language') });

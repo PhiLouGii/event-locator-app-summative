@@ -5,7 +5,7 @@
       "registration_failed": "Error en el registro"
     },
     "server_error": "Error del servidor",
-    "invalid_language": "Idioma no válido",
+    "invalid_language": "Selección de idioma no válida",
     "event_not_found": "Evento no encontrado",
     "route_not_found": "Ruta no encontrada",
     "invalid_coordinates": "Coordenadas inválidas"

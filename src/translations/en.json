@@ -5,6 +5,7 @@
     "registration_failed": "Registration failed"
   },
   "server_error": "Server error",
+  "invalid_language": "Invalid language selection",
   "missing_required_fields": "Missing required fields",
   "preferences_reset": "Preferences reset successfully",
   "invalid_latitude": "Invalid latitude value",
