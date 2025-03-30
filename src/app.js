@@ -8,9 +8,41 @@ const knex = require('./config/database');
 const configurePassport = require('./config/passport');
 const CustomLanguageDetector = require('./middleware/languageDetector');
 const authMiddleware = require('./middleware/authMiddleware');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 // Initialize Express
 const app = express();
+
+// ======================
+//  SWAGGER CONFIGURATION
+// ======================
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Event Locator API',
+      version: '1.0.0',
+    },
+    components: {
+      securitySchemes: {
+        BearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [{ BearerAuth: [] }],
+  },
+  // Path to your route files (adjust if needed)
+  apis: ['./src/routes/*.js', './src/controllers/*.js'],
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+// Serve Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ======================
 //  INTERNATIONALIZATION
@@ -38,7 +70,6 @@ const i18n = i18next
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
-app.use(authMiddleware);
 
 // ======================
 //  AUTH & LOCALIZATION

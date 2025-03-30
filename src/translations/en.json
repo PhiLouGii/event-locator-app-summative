@@ -17,5 +17,10 @@
   "invalid_categories": "One or more categories are invalid",
   "route_not_found": "Route not found",
   "forbidden_action": "You don't have permission for this action",
-  "event_not_found": "Event not found"
+  "event_not_found": "Event not found",
+  "category_exists": "Category already in preferences",
+  "category_added": "Category added to preferences",
+  "missing_location": "Latitude and longitude are required",
+  "category_removed": "Category removed from preferences",
+  "category_not_found": "Category not found"
 }

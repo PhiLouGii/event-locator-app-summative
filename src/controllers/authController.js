@@ -33,31 +33,41 @@ exports.register = async (req, res) => {
     };
 
     // User login
-exports.login = async (req, res) => {
-    try {
-      const { email, password } = req.body;
-  
-      // Find user
-      const user = await knex('users').where({ email }).first();
-      if (!user) {
-        return res.status(401).json({ error: 'Invalid credentials' });
+    exports.login = async (req, res) => {
+      try {
+        const { email, password } = req.body;
+        console.log('Login attempt for email:', email); // 👈 Debug log
+    
+        // Find user
+        const user = await knex('users').where({ email }).first();
+        if (!user) {
+          console.log('User not found'); // 👈 Debug log
+          return res.status(401).json({ error: 'Invalid credentials' });
+        }
+    
+        // Check password
+        const validPassword = await bcrypt.compare(password, user.password_hash);
+        console.log('Password valid?', validPassword); // 👈 Debug log
+    
+        if (!validPassword) {
+          return res.status(401).json({ error: 'Invalid credentials' });
+        }
+    
+        // Generate JWT
+        if (!process.env.JWT_SECRET) { // 👈 Validate secret exists
+          console.error('JWT_SECRET is undefined!');
+          return res.status(500).json({ error: 'Server error' });
+        }
+    
+        const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, {
+          expiresIn: '24h'
+        });
+    
+        console.log('Token generated successfully'); // 👈 Debug log
+        res.json({ token });
+    
+      } catch (error) {
+        console.error('Login error:', error); // 👈 Detailed error log
+        res.status(500).json({ error: 'Login failed' });
       }
-  
-      // Check passwords
-      const validPassword = await bcrypt.compare(password, user.password_hash);
-       console.log('Password valid?', validPassword); // 👈 Add this line
-      if (!validPassword) {
-        return res.status(401).json({ error: 'Invalid credentials' });
-      }
-  
-      // Generate JWT
-      const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, {
-        expiresIn: '24h'
-      });
-  
-      res.json({ token });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Login failed' });
-    }
-}
+    };
