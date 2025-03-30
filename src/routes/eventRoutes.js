@@ -1,4 +1,5 @@
 const express = require('express');
+const reviewController = require('../controllers/reviewController');
 const eventController = require('../controllers/eventController');
 const authMiddleware = require('../middleware/authMiddleware');
 const { isAdmin } = require('../middleware/adminMiddleware');
@@ -205,5 +206,125 @@ router.delete('/admin/:id', authMiddleware, isAdmin, eventController.deleteEvent
  *         description: Event not found
  */
 router.get('/:id', eventController.getEventById);
+
+// Reviews
+/**
+ * @swagger
+ * tags:
+ *   - name: Reviews
+ *     description: Event reviews and ratings
+ */
+
+/**
+ * @swagger
+ * /api/events/{id}/reviews:
+ *   post:
+ *     summary: Add a review to an event
+ *     tags: [Reviews]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rating
+ *             properties:
+ *               rating:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *               comment:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Review added
+ *       400:
+ *         description: Invalid rating or duplicate review
+ */
+router.post('/:id/reviews', authMiddleware, reviewController.addReview);
+
+/**
+ * @swagger
+ * tags:
+ *   - name: Reviews
+ *     description: Event reviews and ratings
+ */
+
+/**
+ * @swagger
+ * /api/events/{id}/reviews:
+ *   get:
+ *     summary: Get reviews about an event
+ *     tags: [Reviews]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of reviews
+ *       404:
+ *         description: No reviews found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id/reviews', reviewController.getEventReviews); 
+
+router.put('/:id/reviews/:reviewId', authMiddleware, reviewController.updateReview);
+
+/**
+ * @swagger
+ * tags:
+ *   - name: Reviews
+ *     description: Event reviews and ratings
+ */
+
+/**
+ * @swagger
+ * /api/events/{id}/reviews:
+ *   delete:
+ *     summary: Remove reviews about an event
+ *     tags: [Reviews]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rating
+ *             properties:
+ *               rating:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *               comment:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Review added
+ *       400:
+ *         description: Invalid rating or duplicate review
+ */
+router.delete('/:id/reviews/:reviewId', authMiddleware, reviewController.deleteReview);
 
 module.exports = router;
