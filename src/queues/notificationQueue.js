@@ -1,10 +1,10 @@
-const Queue = require('bull');
-const redisConfig = { redis: { url: process.env.REDIS_URL } };
-const notificationQueue = new Queue('notifications', 'redis://localhost:6379');
+import { Queue } from 'bullmq';
 
-notificationQueue.process(async (job) => {
-  const { eventId } = job.data;
-  // Logic to find users to notify and send notifications
+const notificationQueue = new Queue('notifications', {
+  connection: {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT
+  }
 });
 
-module.exports = notificationQueue;
+export default notificationQueue;

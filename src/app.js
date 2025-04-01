@@ -2,7 +2,7 @@ require('dotenv').config();
 const http = require('http');
 const { Server } = require('socket.io');
 const express = require('express');
-const i18next = require('i18next');
+const i18next = require('./i18n/config');
 const i18nextMiddleware = require('i18next-http-middleware');
 const redis = require('redis');
 const passport = require('passport');
@@ -74,6 +74,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
+
 // ======================
 //  AUTH & LOCALIZATION
 // ======================
@@ -143,7 +144,7 @@ io.on('connection', (socket) => {
 // ======================
 //  SERVER INITIALIZATION
 // ======================
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);

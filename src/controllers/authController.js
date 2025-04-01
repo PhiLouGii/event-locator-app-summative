@@ -67,7 +67,8 @@ exports.register = async (req, res) => {
         res.json({ token });
     
       } catch (error) {
-        console.error('Login error:', error); // 👈 Detailed error log
-        res.status(500).json({ error: 'Login failed' });
+        res.status(400).json({ 
+          error: req.t('error.invalidCredentials') // 👈 Translated error
+        });
       }
     };
