@@ -182,27 +182,12 @@ exports.updateEvent = async (req, res) => {
 // DELETE EVENT
 exports.deleteEvent = async (req, res) => {
   try {
-    const query = knex('events').where('id', req.params.id);
-
-    // Explicit admin check
-    if (!req.user.is_admin) {
-      // Non-admins can only delete their own events
-      query.andWhere('user_id', req.user.id);
-    }
-
-    const deleted = await query.del();
+    await db('events').where({ id: req.params.id }).del();
     
-    if (!deleted) {
-      return res.status(404).json({ 
-        error: req.t('event_not_found') 
-      });
-    }
-    
+    req.app.get('io').emit('event:deleted', req.params.id);
     res.status(204).end();
   } catch (error) {
-    res.status(500).json({ 
-      error: req.t('server_error') 
-    });
+    res.status(500).json({ error: 'Failed to delete event' });
   }
 };
 

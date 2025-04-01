@@ -1,4 +1,6 @@
 require('dotenv').config();
+const http = require('http');
+const { Server } = require('socket.io');
 const express = require('express');
 const i18next = require('i18next');
 const i18nextMiddleware = require('i18next-http-middleware');
@@ -13,6 +15,7 @@ const swaggerUi = require('swagger-ui-express');
 
 // Initialize Express
 const app = express();
+const server = http.createServer(app);
 
 // ======================
 //  SWAGGER CONFIGURATION
@@ -103,6 +106,7 @@ const userRoutes = require('./routes/userRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api', require('./routes/eventRoutes'));
 app.use(authMiddleware); // Sets req.user
 
 // ======================
@@ -117,6 +121,25 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: req.t('server_error') });
 });
 
+// WebSocket Server
+const io = new Server(server, {
+  cors: {
+    origin: "*", 
+    methods: ["GET", "POST"]
+  }
+});
+
+app.set('io', io);
+
+// WebSocket connection handler
+io.on('connection', (socket) => {
+  console.log(`Client connected: ${socket.id}`);
+  
+  socket.on('disconnect', () => {
+    console.log(`Client disconnected: ${socket.id}`);
+  });
+});
+
 // ======================
 //  SERVER INITIALIZATION
 // ======================
@@ -124,4 +147,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+});
+server.listen(5000, () => {
+  console.log('Server & WebSocket running on port 5000');
 });
