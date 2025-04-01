@@ -7,6 +7,7 @@ i18next
   .use(middleware.LanguageDetector)
   .init({
     fallbackLng: 'en',
+    supportedLngs: ['en', 'fr', 'es', 'it'],
     backend: {
       loadPath: './src/locales/{{lng}}/translation.json',
     },
@@ -14,7 +15,7 @@ i18next
       order: ['header', 'querystring'],
       caches: ['cookie']
     },
-    preload: ['en', 'fr'],
+    preload: ['en', 'fr', 'es', 'it'],
     saveMissing: true
   });
 
