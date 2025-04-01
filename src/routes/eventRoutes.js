@@ -3,6 +3,7 @@ const reviewController = require('../controllers/reviewController');
 const eventController = require('../controllers/eventController');
 const authMiddleware = require('../middleware/authMiddleware');
 const { isAdmin } = require('../middleware/adminMiddleware');
+const favoriteController = require('../controllers/favoriteController');
 
 const router = express.Router();
 
@@ -326,5 +327,46 @@ router.put('/:id/reviews/:reviewId', authMiddleware, reviewController.updateRevi
  *         description: Invalid rating or duplicate review
  */
 router.delete('/:id/reviews/:reviewId', authMiddleware, reviewController.deleteReview);
+
+// Add after other routes
+/**
+ * @swagger
+ * /api/events/{eventId}/favorite:
+ *   post:
+ *     summary: Toggle event favorite status
+ *     tags: [Favorites]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       201:
+ *         description: Added to favorites
+ *       200:
+ *         description: Removed from favorites
+ *       500:
+ *         description: Server error
+ */
+router.post('/:eventId/favorite', authMiddleware, favoriteController.toggleFavorite);
+
+/**
+ * @swagger
+ * /api/events/favorites:
+ *   get:
+ *     summary: Get user's favorite events
+ *     tags: [Favorites]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of favorite events
+ *       500:
+ *         description: Server error
+ */
+router.get('/favorites', authMiddleware, favoriteController.getUserFavorites);
 
 module.exports = router;
