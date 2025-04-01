@@ -19,3 +19,4 @@ An interactive platform that enables multiple users to explore and discover even
 
 ## ‼️ Challenges & Solutions
 - **Real Time Updates:** Implementing Real time features using Websocket was a bit challenging, however, I was able to get through.
+- **Multi Language Implementation:** I had some challenges trying to implement multi languages but then I realised I had duplicated files
