@@ -90,6 +90,9 @@ exports.createEvent = async (req, res) => {
         .groupBy('events.id')
         .first();
 
+        // REAL-TIME UPDATE
+      req.app.get('io').emit('event:created', eventWithCategories);
+
       return eventWithCategories;
     });
 
@@ -168,6 +171,9 @@ exports.updateEvent = async (req, res) => {
       .groupBy('events.id')
       .first();
 
+      // REAL-TIME UPDATE
+    req.app.get('io').emit('event:updated', fullEvent);
+
     await trx.commit();
     res.json(fullEvent);
 
@@ -182,12 +188,14 @@ exports.updateEvent = async (req, res) => {
 // DELETE EVENT
 exports.deleteEvent = async (req, res) => {
   try {
-    await db('events').where({ id: req.params.id }).del();
+    const eventId = req.params.id;
+    await knex('events').where({ id: eventId }).del();
     
-    req.app.get('io').emit('event:deleted', req.params.id);
+    // REAL-TIME UPDATE
+    req.app.get('io').emit('event:deleted', eventId);
     res.status(204).end();
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete event' });
+    res.status(500).json({ error: req.t('server_error') });
   }
 };
 
