@@ -11,6 +11,7 @@ const configurePassport = require('./config/passport');
 const authMiddleware = require('./middleware/authMiddleware');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const mapRoutes = require('./routes/mapRoutes');
 
 // ======================
 //  INITIAL SETUP
@@ -55,6 +56,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(i18nextMiddleware.handle(i18next));
 app.use(passport.initialize());
+app.use('/api/maps', mapRoutes);
 configurePassport(passport);
 
 // ======================

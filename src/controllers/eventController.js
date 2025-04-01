@@ -1,5 +1,6 @@
 const { parse } = require('dotenv');
 const knex = require('../config/database');
+const { publishNotification, scheduleNotification } = require('../services/notificationService');
 
 // GET ALL EVENTS
 exports.getAllEvents = async (req, res) => {
@@ -61,6 +62,7 @@ exports.createEvent = async (req, res) => {
         user_id: req.user.id
       }).returning('*');
 
+      let validCategories = [];
       if (categories?.length) {
         const validCategories = await trx('categories')
           .whereIn('id', categories)
@@ -80,21 +82,65 @@ exports.createEvent = async (req, res) => {
 
       // Get event with categories
       const eventWithCategories = await trx('events')
-        .leftJoin('event_categories', 'events.id', 'event_categories.event_id')
-        .leftJoin('categories', 'event_categories.category_id', 'categories.id')
-        .select(
-          'events.*',
-          trx.raw('ARRAY_AGG(categories.name) as categories')
-        )
-        .where('events.id', newEvent.id)
-        .groupBy('events.id')
-        .first();
+      .leftJoin('event_categories', 'events.id', 'event_categories.event_id')
+      .leftJoin('categories', 'event_categories.category_id', 'categories.id')
+      .select(
+        'events.*',
+        trx.raw('ARRAY_AGG(categories.id) as category_ids'),
+        trx.raw('ARRAY_AGG(categories.name) as categories')
+      )
+      .where('events.id', newEvent.id)
+      .groupBy('events.id')
+      .first();
 
         // REAL-TIME UPDATE
       req.app.get('io').emit('event:created', eventWithCategories);
 
       return eventWithCategories;
     });
+
+    // Publish notifications after successful transaction
+    try {
+      if (event.category_ids?.length > 0) {
+        const subscribers = await knex('user_subscriptions')
+          .select('user_id')
+          .whereIn('category_id', event.category_ids)
+          .distinct();
+
+        const recipientIds = subscribers.map(sub => sub.user_id);
+        
+        if (recipientIds.length > 0) {
+          await publishNotification('events', {
+            type: 'NEW_EVENT',
+            event: event,
+            recipients: recipientIds
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Notification publish error:', error);
+    }
+
+    // Schedule reminder for creator
+    try {
+      const eventDate = new Date(event.date_time);
+      const reminderTime = new Date(eventDate.getTime() - 24 * 60 * 60 * 1000);
+      
+      if (reminderTime > new Date()) {
+        const delay = reminderTime.getTime() - Date.now();
+        await scheduleNotification(
+          req.user.id,
+          {
+            eventId: event.id,
+            title: event.title,
+            date: event.date_time
+          },
+          delay
+        );
+      }
+    } catch (error) {
+      console.error('Reminder scheduling error:', error);
+    }
 
     res.status(201).json(event);
   } catch (error) {
