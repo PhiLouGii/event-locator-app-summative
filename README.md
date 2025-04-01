@@ -15,3 +15,7 @@ An interactive platform that enables multiple users to explore and discover even
 - Category-based filtering to refine event discovery.
 - Event ratings and reviews to improve recommendations.
 - Favorites system for saving and managing preferred events.
+
+
+## ‼️ Challenges & Solutions
+- **Real Time Updates:** Implementing Real time features using Websocket was a bit challenging, however, I was able to get through.
