@@ -43,3 +43,4 @@ An interactive platform that enables multiple users to explore and discover even
 - **Real Time Updates:** Implementing Real time features using Websocket was a bit challenging, however, I was able to get through.
 - **Multi Language Implementation:** I had some challenges trying to implement multi languages but then I realised I had duplicated files
 - **Google Maps API:** Another feature I had troubles with was adding the Google Maps API integration within the app
+- **Notification Feature:** There was some troubles when trying to show the notification feature, however, I opened the app in another browser to get the notification popups.
