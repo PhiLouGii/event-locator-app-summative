@@ -212,3 +212,20 @@ exports.preventDuplicateCategory = async (trx, userId, categoryId) => {
     .first();
   if (exists) throw new ConflictError(req.t('category_exists'));
 };
+
+exports.setLocation = async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+    validateCoordinates(latitude, longitude);
+    
+    await knex('users')
+      .where({ id: req.user.id })
+      .update({
+        location: knex.raw('ST_SetSRID(ST_MakePoint(?, ?), 4326)', [longitude, latitude])
+      });
+
+    res.json({ success: true, message: 'Location updated' });
+  } catch (error) {
+    res.handleValidationError(error) || res.serverError(req, error);
+  }
+};

@@ -10,6 +10,10 @@ router.patch(
   userController.updatePreferences
 );
 
+// Category Preferences
+router.post('/me/categories/:categoryId', authMiddleware, userController.addPreferredCategory);
+router.delete('/me/categories/:categoryId', authMiddleware, userController.removePreferredCategory);
+
 // GET User Preferences
 
 /**
@@ -136,6 +140,22 @@ router.post('/me/categories/:categoryId', authMiddleware, userController.addPref
  *         description: Category removed
  */
 router.delete('/me/categories/:categoryId', authMiddleware, userController.removePreferredCategory);
+
+// Update Preferences
+router.put(
+  '/preferences',
+  authMiddleware,
+  userController.updatePreferences 
+);
+
+router.patch('/me', authMiddleware, userController.updateProfile);
+
+// Update Profile
+router.put(
+  '/profile',
+  authMiddleware, 
+  userController.updateProfile 
+);
 
 // Test route 
 router.get('/', (req, res) => {
