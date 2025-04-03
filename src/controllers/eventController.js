@@ -212,6 +212,43 @@ exports.getEventById = async (req, res) => {
   }
 };
 
+// GET NEARBY EVENTS
+exports.getNearbyEvents = async (req, res) => {
+  const { categories } = req.query;
+  
+  const events = await Event.findAll({
+    include: [{
+      model: Category,
+      where: categories ? { id: categories.split(',') } : {},
+      through: { attributes: [] }
+    }]
+  });
+  
+  res.json(events);
+};
+
+// GET RECOMMENDED EVENTS
+exports.getRecommendedEvents = async (req, res) => {
+  // Get user's preferred categories
+  const preferences = await UserCategory.findAll({
+    where: { userId: req.user.id },
+    attributes: ['categoryId']
+  });
+
+  const preferredCategories = preferences.map(p => p.categoryId);
+
+  // Find events matching preferences
+  const events = await Event.findAll({
+    include: [{
+      model: Category,
+      where: { id: preferredCategories },
+      through: { attributes: [] }
+    }]
+  });
+
+  res.json(events);
+};
+
 // SEARCH EVENTS
 exports.searchEvents = async (req, res) => {
   try {

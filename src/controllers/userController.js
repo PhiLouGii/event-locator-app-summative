@@ -1,42 +1,44 @@
 const knex = require('../config/database');
+const { validateCoordinates, validateLanguage } = require('../utils/validators');
 
-// GET USER PREFERENCES
+const getFullPreferences = async (userId, trx = knex) => {
+  return trx('users')
+    .leftJoin('user_categories', 'users.id', 'user_categories.user_id')
+    .leftJoin('categories', 'user_categories.category_id', 'categories.id')
+    .select(
+      'users.preferred_language',
+      trx.raw('ST_Y(users.location::geometry) as lat'),
+      trx.raw('ST_X(users.location::geometry) as lng'),
+      trx.raw('COALESCE(ARRAY_AGG(categories.id), ARRAY[]::integer[]) as preferred_categories')
+    )
+    .where('users.id', userId)
+    .groupBy('users.id')
+    .first();
+};
+
+// Get user preferences
 exports.getPreferences = async (req, res) => {
   try {
-    const user = await knex('users')
-      .leftJoin('user_categories', 'users.id', 'user_categories.user_id')
-      .leftJoin('categories', 'user_categories.category_id', 'categories.id')
-      .select(
-        'users.id',
-        'users.preferred_language',
-        knex.raw('ST_Y(users.location::geometry) as lat'),
-        knex.raw('ST_X(users.location::geometry) as lng'),
-        knex.raw('COALESCE(ARRAY_AGG(categories.id), ARRAY[]::integer[]) as preferred_categories')
-      )
-      .where('users.id', req.user.id)
-      .groupBy('users.id')
-      .first();
-
+    const preferences = await getFullPreferences(req.user.id);
+    
     res.json({
       success: true,
       preferences: {
-        language: user?.preferred_language || 'en',
-        location: user?.lat && user?.lng ? 
-          { lat: parseFloat(user.lat), lng: parseFloat(user.lng) } : null,
-        categories: user?.preferred_categories || []
+        language: preferences?.preferred_language || 'en',
+        location: preferences?.lat && preferences?.lng ? {
+          lat: parseFloat(preferences.lat),
+          lng: parseFloat(preferences.lng)
+        } : null,
+        categories: preferences?.preferred_categories || []
       }
     });
   } catch (error) {
     console.error('Get preferences error:', error);
-    res.status(500).json({ 
-      success: false,
-      error: req.t('server_error'),
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    res.serverError(req, error);
   }
 };
 
-// RESET PREFERENCES
+// Reset preferences to default values
 exports.resetPreferences = async (req, res) => {
   const trx = await knex.transaction();
   try {
@@ -58,44 +60,20 @@ exports.resetPreferences = async (req, res) => {
     });
   } catch (error) {
     await trx.rollback();
-    res.status(500).json({ 
-      success: false,
-      error: req.t('server_error'),
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    res.serverError(req, error);
   }
 };
 
-// UPDATE PREFERENCES (LOCATION, CATEGORIES, LANGUAGE)
+// Update user preferences
 exports.updatePreferences = async (req, res) => {
   const trx = await knex.transaction();
   try {
     const { latitude, longitude, categories = [], preferred_language } = req.body;
     const userId = req.user.id;
 
-    // ======================
-    //  VALIDATE LANGUAGE
-    // ======================
-    const validLanguages = ['en', 'es', 'fr', 'it', 'de', 'fi', 'nl', 'pt', 'sw', 'zu'];
-    if (preferred_language && !validLanguages.includes(preferred_language)) {
-      return res.status(400).json({ 
-        success: false,
-        error: req.t('invalid_language') 
-      });
-    }
-
-    // ======================
-    //  UPDATE LOCATION
-    // ======================
+    // Update location if provided
     if (latitude && longitude) {
-      if (isNaN(latitude) || latitude < -90 || latitude > 90 ||
-          isNaN(longitude) || longitude < -180 || longitude > 180) {
-        return res.status(400).json({ 
-          success: false,
-          error: req.t('invalid_coordinates') 
-        });
-      }
-
+      validateCoordinates(latitude, longitude);
       await trx('users')
         .where({ id: userId })
         .update({
@@ -106,86 +84,42 @@ exports.updatePreferences = async (req, res) => {
         });
     }
 
-    // ======================
-    //  UPDATE CATEGORIES
-    // ======================
-    await trx('user_categories').where({ user_id: userId }).del();
-
+    // Update categories if provided
     if (categories.length > 0) {
-      const validCategories = await trx('categories')
-        .whereIn('id', categories)
-        .pluck('id');
-
-      const invalidCategories = categories.filter(
-        catId => !validCategories.includes(Number(catId))
-      );
-
-      if (invalidCategories.length > 0) {
-        return res.status(400).json({
-          success: false,
-          error: req.t('invalid_categories'),
-          invalidCategories
-        });
-      }
-
-      // Insert only valid categories
-      await trx('user_categories').insert(
-        validCategories.map(catId => ({
-          user_id: userId,
-          category_id: catId
-        }))
-      );
+      await this.updateUserCategories(trx, userId, categories);
     }
 
-    // ======================
-    //  UPDATE LANGUAGE
-    // ======================
+    // Update language if provided
     if (preferred_language) {
+      validateLanguage(preferred_language);
       await trx('users')
         .where({ id: userId })
         .update({ preferred_language });
     }
 
-    // ======================
-    //  RETURN UPDATED DATA
-    // ======================
-    const user = await trx('users')
-      .leftJoin('user_categories', 'users.id', 'user_categories.user_id')
-      .leftJoin('categories', 'user_categories.category_id', 'categories.id')
-      .select(
-        'users.preferred_language',
-        trx.raw('ST_Y(users.location::geometry) as lat'),
-        trx.raw('ST_X(users.location::geometry) as lng'),
-        trx.raw('COALESCE(ARRAY_AGG(categories.id), ARRAY[]::integer[]) as preferred_categories')
-      )
-      .where('users.id', userId)
-      .groupBy('users.id')
-      .first();
-
+    // Get updated preferences
+    const updatedPreferences = await getFullPreferences(userId, trx);
     await trx.commit();
 
     res.json({
       success: true,
       preferences: {
-        language: user.preferred_language,
-        location: user.lat && user.lng ? 
-          { lat: parseFloat(user.lat), lng: parseFloat(user.lng) } : null,
-        categories: user.preferred_categories
+        language: updatedPreferences.preferred_language,
+        location: updatedPreferences.lat && updatedPreferences.lng ? {
+          lat: parseFloat(updatedPreferences.lat),
+          lng: parseFloat(updatedPreferences.lng)
+        } : null,
+        categories: updatedPreferences.preferred_categories
       }
     });
 
   } catch (error) {
     await trx.rollback();
-    console.error('Preferences update error:', error);
-    res.status(500).json({ 
-      success: false,
-      error: req.t('server_error'),
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    res.handleValidationError(error) || res.serverError(req, error);
   }
 };
 
-// UPDATE USER PROFILE (USERNAME/EMAIL)
+// Update user profile (username/email)
 exports.updateProfile = async (req, res) => {
   const trx = await knex.transaction();
   try {
@@ -197,126 +131,84 @@ exports.updateProfile = async (req, res) => {
       .returning(['id', 'username', 'email']);
 
     await trx.commit();
-    res.json({ 
-      success: true,
-      user: updatedUser 
-    });
+    res.json({ success: true, user: updatedUser });
   } catch (error) {
     await trx.rollback();
-    res.status(500).json({ 
-      success: false,
-      error: req.t('server_error'),
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    res.handleDatabaseError(error) || res.serverError(req, error);
   }
 };
 
-// ADD PREFERRED CATEGORY
+// Category management functions
 exports.addPreferredCategory = async (req, res) => {
   const trx = await knex.transaction();
   try {
     const categoryId = parseInt(req.params.categoryId);
+    const userId = req.user.id;
 
-    // Validate category exists
-    const categoryExists = await trx('categories')
-      .where('id', categoryId)
-      .first();
-      
-    if (!categoryExists) {
-      return res.status(404).json({ 
-        success: false,
-        error: req.t('category_not_found') 
-      });
-    }
-
-    // Prevent duplicates
-    const existing = await trx('user_categories')
-      .where({ 
-        user_id: req.user.id, 
-        category_id: categoryId 
-      })
-      .first();
-
-    if (existing) {
-      return res.status(400).json({ 
-        success: false,
-        error: req.t('category_exists') 
-      });
-    }
+    await this.validateCategoryExists(trx, categoryId);
+    await this.preventDuplicateCategory(trx, userId, categoryId);
 
     await trx('user_categories').insert({
-      user_id: req.user.id,
+      user_id: userId,
       category_id: categoryId
     });
 
     await trx.commit();
-    res.status(201).json({ 
-      success: true,
-      message: req.t('category_added') 
-    });
+    res.created(req.t('category_added'));
   } catch (error) {
     await trx.rollback();
-    res.status(500).json({ 
-      success: false,
-      error: req.t('server_error'),
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    res.handleValidationError(error) || res.serverError(req, error);
   }
 };
 
-// REMOVE PREFERRED CATEGORY
 exports.removePreferredCategory = async (req, res) => {
   const trx = await knex.transaction();
   try {
     const categoryId = parseInt(req.params.categoryId);
-    
-    const deleted = await trx('user_categories')
-      .where({
-        user_id: req.user.id,
-        category_id: categoryId
-      })
+    const userId = req.user.id;
+
+    const deletedCount = await trx('user_categories')
+      .where({ user_id: userId, category_id: categoryId })
       .del();
 
-    if (!deleted) {
-      return res.status(404).json({ 
-        success: false,
-        error: req.t('category_not_found') 
-      });
+    if (deletedCount === 0) {
+      return res.notFound(req.t('category_not_found'));
     }
 
     await trx.commit();
-    res.status(204).end();
+    res.noContent();
   } catch (error) {
     await trx.rollback();
-    res.status(500).json({ 
-      success: false,
-      error: req.t('server_error'),
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    res.serverError(req, error);
   }
 };
 
-// Controller function exists
-exports.setLocation = async (req, res) => {
-  const trx = await knex.transaction();
-  try {
-    const { longitude, latitude } = req.body;
+// Helper methods
+exports.updateUserCategories = async (trx, userId, categoryIds) => {
+  const validCategories = await trx('categories')
+    .whereIn('id', categoryIds)
+    .pluck('id');
 
-    // Validate coordinates
-    if (isNaN(longitude) || isNaN(latitude)) {
-      return res.status(400).json({ error: req.t('invalid_coordinates') });
-    }
-
-    await trx('users')
-      .where({ id: req.user.id })
-      .update({
-        location: trx.raw('ST_SetSRID(ST_MakePoint(?, ?), 4326)', [longitude, latitude])
-      });
-
-    await trx.commit();
-    res.json({ success: true });
-  } catch (error) {
-    await trx.rollback();
-    res.status(500).json({ error: req.t('server_error') });
+  const invalidCategories = categoryIds.filter(id => !validCategories.includes(Number(id)));
+  
+  if (invalidCategories.length > 0) {
+    throw new ValidationError(req.t('invalid_categories'), { invalidCategories });
   }
+
+  await trx('user_categories').where({ user_id: userId }).del();
+  await trx('user_categories').insert(
+    validCategories.map(catId => ({ user_id: userId, category_id: catId }))
+  );
+};
+
+exports.validateCategoryExists = async (trx, categoryId) => {
+  const exists = await trx('categories').where('id', categoryId).first();
+  if (!exists) throw new NotFoundError(req.t('category_not_found'));
+};
+
+exports.preventDuplicateCategory = async (trx, userId, categoryId) => {
+  const exists = await trx('user_categories')
+    .where({ user_id: userId, category_id: categoryId })
+    .first();
+  if (exists) throw new ConflictError(req.t('category_exists'));
 };
