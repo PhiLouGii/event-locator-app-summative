@@ -13,9 +13,12 @@ module.exports = {
     },
     test: {
         client: 'pg',
-        connection: process.env.TEST_DATABASE_URL,
+        connection: process.env.TEST_DATABASE_URL || 'postgres://localhost/event_locator_test',
         migrations: {
             directory: './migrations',
+        },
+        seeds: {
+            directory: './seeds/test'
         }
     }
 };

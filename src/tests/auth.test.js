@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../src/app');
+const app = require('../../src/app');
 
 describe('Auth Endpoints', () => {
   it('should register a new user', async () => {
