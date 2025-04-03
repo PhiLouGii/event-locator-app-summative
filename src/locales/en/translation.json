@@ -1,9 +1,9 @@
 {
     "error": {
       "invalidCredentials": "Invalid email or password",
-      "eventNotFound": "Event not found"
+      "event_not_found": "Event not found"
     },
     "success": {
-      "eventCreated": "Event created successfully"
+      "event_created": "Event created successfully"
     }
   }

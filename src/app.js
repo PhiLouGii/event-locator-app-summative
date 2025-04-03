@@ -111,6 +111,7 @@ io.on('connection', (socket) => {
 // ======================
 //  ROUTES
 // ======================
+app.use(i18nextMiddleware.handle(i18next));
 const authRoutes = require('./routes/authRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const userRoutes = require('./routes/userRoutes');

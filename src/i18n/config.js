@@ -13,7 +13,8 @@ i18next
     },
     detection: {
       order: ['header', 'querystring'],
-      caches: ['cookie']
+      caches: ['cookie'],
+      lookupHeader: 'accept-language',
     },
     preload: ['en', 'fr', 'es', 'it'],
     saveMissing: true

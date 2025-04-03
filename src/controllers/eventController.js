@@ -44,14 +44,14 @@ exports.getAllEvents = async (req, res) => {
     events = events.map(event => ({
       ...event,
       formattedDate: format(new Date(event.date_time), 'PPP', {
-        locale: dateLocales[req.language] || enGB
+        locale: dateLocales[req.language] || en
       })
     }));
 
     res.json(events);
   } catch (error) {
     console.error('Get events error:', error);
-    res.status(500).json({ error: req.t('server_error') });
+    res.status(500).json({ error: req.t('error.server_error') });
   }
 };
 
@@ -106,14 +106,12 @@ exports.createEvent = async (req, res) => {
       eventWithCategories.formattedDate = format(
         new Date(eventWithCategories.date_time), 
         'PPP', 
-        { locale: dateLocales[req.language] || enGB }
+        { locale: dateLocales[req.language] || en }
       );
 
       req.app.get('io').emit('event:created', eventWithCategories);
       return eventWithCategories;
     });
-
-    // Notification logic remains same...
     
     res.status(201).json(event);
   } catch (error) {
@@ -129,8 +127,6 @@ exports.createEvent = async (req, res) => {
 exports.updateEvent = async (req, res) => {
   const trx = await knex.transaction();
   try {
-    // ... existing update logic ...
-
     const fullEvent = await trx('events')
       .leftJoin('event_categories', 'events.id', 'event_categories.event_id')
       .leftJoin('categories', 'event_categories.category_id', 'categories.id')
@@ -146,7 +142,7 @@ exports.updateEvent = async (req, res) => {
     fullEvent.formattedDate = format(
       new Date(fullEvent.date_time),
       'PPP',
-      { locale: dateLocales[req.language] || enGB }
+      { locale: dateLocales[req.language] || en }
     );
 
     req.app.get('io').emit('event:updated', fullEvent);
@@ -156,7 +152,7 @@ exports.updateEvent = async (req, res) => {
   } catch (error) {
     await trx.rollback();
     console.error('Update event error:', error);
-    res.status(500).json({ error: req.t('server_error') });
+    res.status(500).json({ error: req.t('error.server_error') });
   }
 };
 
@@ -169,7 +165,7 @@ exports.deleteEvent = async (req, res) => {
     req.app.get('io').emit('event:deleted', eventId);
     res.status(204).end();
   } catch (error) {
-    res.status(500).json({ error: req.t('server_error') });
+    res.status(500).json({ error: req.t('error.server_error') });
   }
 };
 
@@ -188,14 +184,15 @@ exports.getEventById = async (req, res) => {
       .first();
 
     if (!event) {
-      return res.status(404).json({ error: req.t('event_not_found') });
+      return res.status(404).json({ 
+        error: req.t('error.event_not_found') });
     }
 
     // Add formatted date and distance if available
     event.formattedDate = format(
       new Date(event.date_time),
       'PPP',
-      { locale: dateLocales[req.language] || enGB }
+      { locale: dateLocales[req.language] || en }
     );
 
     if (event.distance) {
@@ -208,7 +205,7 @@ exports.getEventById = async (req, res) => {
 
     res.json(event);
   } catch (error) {
-    res.status(500).json({ error: req.t('server_error') });
+    res.status(500).json({ error: req.t('error.server_error') });
   }
 };
 
@@ -291,6 +288,6 @@ exports.searchEvents = async (req, res) => {
     res.json(formattedEvents);
   } catch (error) {
     console.error('Search error:', error);
-    res.status(500).json({ error: req.t('server_error') });
+    res.status(500).json({ error: req.t('error.server_error') });
   }
 };
