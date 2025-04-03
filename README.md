@@ -97,6 +97,6 @@ npm test
 Feel free to fork this repository, make improvements, and submit pull requests. Please follow the coding standards and ensure that all new features are well-tested.
 
 ## 🎬 Video Presentation
-A video presentation showcasing the project, explaining its features, and demonstrating the key functionalities is available: 
+A video presentation showcasing the project, explaining its features, and demonstrating the key functionalities is available: https://youtu.be/-o5lE4IjE-k
 
 Author: P. L. Giibwa
