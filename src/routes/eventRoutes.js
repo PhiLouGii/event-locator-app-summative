@@ -161,7 +161,7 @@ router.get('/search', eventController.searchEvents);
  *         description: Invalid input
  */
 router.put('/:id', authMiddleware, eventController.updateEvent);
-router.delete('/admin/:id', authMiddleware, isAdmin, eventController.deleteEvent);
+
 
 /**
  * @swagger

@@ -160,6 +160,19 @@ exports.updateEvent = async (req, res) => {
   }
 };
 
+// DELETE AN EVENT
+exports.deleteEvent = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    await knex('events').where({ id: eventId }).del();
+    
+    req.app.get('io').emit('event:deleted', eventId);
+    res.status(204).end();
+  } catch (error) {
+    res.status(500).json({ error: req.t('server_error') });
+  }
+};
+
 // GET EVENT BY ID
 exports.getEventById = async (req, res) => {
   try {
