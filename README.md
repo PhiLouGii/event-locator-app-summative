@@ -86,6 +86,10 @@ npm test
 - ```POST /api/events/:id/favourite```: Marks an event as a favourite.
 - ```POST /api/events/:id/reviews```: Submits a review for a specific event.
 
+Below you can find my Swagger-UI that contains the different API endpoints:
+
+<img src="docs_images/swagger-ui.png" width="400">
+
 ## ‼️ Challenges & Solutions
 - **Real Time Updates:** Implementing Real time features using Websocket was a bit challenging, however, I was able to get through.
 - **Multi Language Implementation:** I faced some challenges while implementing multiple languages, but I eventually discovered that the issue was caused by duplicated files, which I then resolved.
