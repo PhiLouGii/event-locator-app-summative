@@ -16,6 +16,10 @@ An interactive platform that enables multiple users to explore and discover even
 - Event ratings and reviews to improve recommendations.
 - Favorites system for saving and managing preferred events.
 
+## 📑 API Documentation
+### Authentication
+- ```POST /api/auth/login```: Login and then get a JWT token
+- ```POST /api/auth/register```: A new user registers into the app
 
 ## ‼️ Challenges & Solutions
 - **Real Time Updates:** Implementing Real time features using Websocket was a bit challenging, however, I was able to get through.
