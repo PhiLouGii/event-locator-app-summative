@@ -111,8 +111,6 @@ io.on('connection', (socket) => {
 // ======================
 //  ROUTES
 // ======================
-app.use(authMiddleware); // Applies to all routes below
-
 const authRoutes = require('./routes/authRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -120,6 +118,8 @@ const userRoutes = require('./routes/userRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/users', userRoutes);
+
+app.use(authMiddleware); 
 
 // ======================
 //  ERROR HANDLING
