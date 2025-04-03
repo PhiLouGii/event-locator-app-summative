@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Notifications</title>
+</head>
+<body>
+    <h2>Listening for events...</h2>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script>
+        // Connect to your server
+        const socket = io('http://localhost:5000');
+
+        // Listen for events
+        socket.on('event:created', (data) => {
+            console.log('NEW EVENT:', data);
+            alert(`New event created: ${data.title}`);
+        });
+
+        // Optional: Add connection status logging
+        socket.on('connect', () => console.log('Connected to server!'));
+        socket.on('disconnect', () => console.log('Disconnected from server'));
+    </script>
+</body>
+</html>
